@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calibrate - TTI Sensor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --text-primary: #f0f0f5;
+            --text-secondary: #8888a0;
+            --accent: #6366f1;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: #2a2a3a;
+        }
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .logo h1 { font-size: 1.5rem; }
+        .back-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--text-primary); }
+        .progress-container { margin-bottom: 30px; }
+        .progress-bar {
+            height: 8px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent) 0%, #8b5cf6 100%);
+            transition: width 0.3s;
+        }
+        .progress-text {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+        .instructions {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        .instructions h3 { color: var(--accent); margin-bottom: 15px; }
+        .instructions ol { margin-left: 20px; }
+        .instructions li { margin-bottom: 8px; color: var(--text-secondary); }
+        .instructions strong { color: var(--text-primary); }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+        .card-title { font-size: 1.25rem; margin-bottom: 20px; }
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: var(--bg-secondary);
+            margin-bottom: 20px;
+        }
+        .upload-zone:hover { border-color: var(--accent); background: rgba(99, 102, 241, 0.1); }
+        .upload-zone-icon { font-size: 48px; margin-bottom: 15px; }
+        .upload-zone p { color: var(--text-secondary); }
+        .canvas-container { position: relative; display: none; margin-bottom: 20px; }
+        .canvas-container.show { display: block; }
+        #calibration-canvas {
+            max-width: 100%;
+            border-radius: 8px;
+            cursor: crosshair;
+            border: 2px solid var(--border);
+        }
+        .status-legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .legend-item {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .legend-item.active { border-color: var(--accent); background: rgba(99, 102, 241, 0.1); }
+        .legend-item.completed { border-color: var(--success); }
+        .legend-color {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            margin: 0 auto 10px;
+            border: 2px solid var(--border);
+        }
+        .legend-item.fresh .legend-color { background: #228b22; }
+        .legend-item.good .legend-color { background: #90ee90; }
+        .legend-item.warning .legend-color { background: #8b5a2b; }
+        .legend-item.expired .legend-color { background: #b22222; }
+        .legend-label { font-weight: 600; margin-bottom: 5px; }
+        .legend-days { font-size: 0.85rem; color: var(--text-secondary); }
+        .legend-rgb { font-size: 0.75rem; color: var(--accent); font-family: monospace; margin-top: 5px; }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary { background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3); }
+        .btn-success { background: linear-gradient(135deg, var(--success) 0%, #16a34a 100%); color: white; }
+        .btn-secondary { background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border); }
+        .btn-danger { background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%); color: white; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-group { display: flex; gap: 15px; flex-wrap: wrap; }
+        .message {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .message-info { background: rgba(99, 102, 241, 0.2); border: 1px solid var(--accent); }
+        .message-success { background: rgba(34, 197, 94, 0.2); border: 1px solid var(--success); }
+        .message-error { background: rgba(239, 68, 68, 0.2); border: 1px solid var(--danger); }
+        input[type="file"] { display: none; }
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 30px;
+            border-top: 1px solid var(--border);
+        }
+        @media (max-width: 600px) {
+            .status-legend { grid-template-columns: repeat(2, 1fr); }
+            .btn-group { flex-direction: column; }
+            .btn { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo"><h1>🎯 Sensor Calibration</h1></div>
+                <a href="/" class="back-link">← Back to App</a>
+            </div>
+        </div>
+    </header>
+    
+    <main class="container">
+        <div class="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+            </div>
+            <div class="progress-text">
+                <span id="progress-status">Step 1: Upload sensor image</span>
+                <span id="progress-count">0/4 colors selected</span>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>📋 How to Calibrate</h3>
+            <ol>
+                <li><strong>Upload</strong> a clear image of your TTI sensor showing all color states</li>
+                <li><strong>Click</strong> on each status below, then <strong>draw a box</strong> on the image to select that color region</li>
+                <li>Select all 4 color regions: <strong>Fresh</strong>, <strong>Good</strong>, <strong>Warning</strong>, <strong>Expired</strong></li>
+                <li>Click <strong>Save Calibration</strong> when done</li>
+            </ol>
+        </div>
+        
+        <div class="card">
+            <h2 class="card-title">📷 Sensor Image</h2>
+            <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+                <div class="upload-zone-icon">📤</div>
+                <p>Click to upload or drag & drop sensor image</p>
+            </div>
+            <div class="canvas-container" id="canvas-container">
+                <canvas id="calibration-canvas"></canvas>
+            </div>
+            <input type="file" id="file-input" accept="image/*" onchange="handleImageUpload(event)">
+        </div>
+        
+        <div class="card">
+            <h2 class="card-title">🎨 Select Color Regions</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 20px;">Click a status below, then draw a box on the image.</p>
+            <div class="status-legend" id="status-legend">
+                <div class="legend-item fresh" data-status="fresh" onclick="selectStatus('fresh')">
+                    <div class="legend-color"></div>
+                    <div class="legend-label">🟢 FRESH</div>
+                    <div class="legend-days">30-40 days</div>
+                    <div class="legend-rgb" id="rgb-fresh">Click to select</div>
+                </div>
+                <div class="legend-item good" data-status="good" onclick="selectStatus('good')">
+                    <div class="legend-color"></div>
+                    <div class="legend-label">🟡 GOOD</div>
+                    <div class="legend-days">15-30 days</div>
+                    <div class="legend-rgb" id="rgb-good">Click to select</div>
+                </div>
+                <div class="legend-item warning" data-status="warning" onclick="selectStatus('warning')">
+                    <div class="legend-color"></div>
+                    <div class="legend-label">🟠 WARNING</div>
+                    <div class="legend-days">5-15 days</div>
+                    <div class="legend-rgb" id="rgb-warning">Click to select</div>
+                </div>
+                <div class="legend-item expired" data-status="expired" onclick="selectStatus('expired')">
+                    <div class="legend-color"></div>
+                    <div class="legend-label">🔴 EXPIRED</div>
+                    <div class="legend-days">0 days</div>
+                    <div class="legend-rgb" id="rgb-expired">Click to select</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div id="message-container"></div>
+            <div class="btn-group">
+                <button class="btn btn-success" id="btn-save" onclick="saveCalibration()" disabled>💾 Save Calibration</button>
+                <button class="btn btn-secondary" onclick="resetCalibration()">🔄 Reset</button>
+                <button class="btn btn-danger" onclick="useDefaults()">⚡ Use Defaults</button>
+            </div>
+        </div>
+    </main>
+    
+    <footer><p>TTI Sensor Calibration Tool | University of Washington</p></footer>
+    
+    <script>
+        let uploadedImage = null, canvas, ctx, currentStatus = null, isDrawing = false, startX, startY;
+        let calibrationData = { fresh: null, good: null, warning: null, expired: null };
+        let selectionBoxes = {};
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            canvas = document.getElementById('calibration-canvas');
+            ctx = canvas.getContext('2d');
+            canvas.addEventListener('mousedown', startSelection);
+            canvas.addEventListener('mousemove', updateSelection);
+            canvas.addEventListener('mouseup', endSelection);
+            canvas.addEventListener('mouseleave', endSelection);
+            canvas.addEventListener('touchstart', handleTouch);
+            canvas.addEventListener('touchmove', handleTouch);
+            canvas.addEventListener('touchend', handleTouch);
+            const uploadZone = document.getElementById('upload-zone');
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(e => uploadZone.addEventListener(e, ev => ev.preventDefault()));
+            ['dragenter', 'dragover'].forEach(e => uploadZone.addEventListener(e, () => uploadZone.classList.add('dragover')));
+            ['dragleave', 'drop'].forEach(e => uploadZone.addEventListener(e, () => uploadZone.classList.remove('dragover')));
+            uploadZone.addEventListener('drop', e => { if (e.dataTransfer.files.length) handleImageFile(e.dataTransfer.files[0]); });
+        });
+        
+        function handleImageUpload(e) { if (e.target.files[0]) handleImageFile(e.target.files[0]); }
+        
+        function handleImageFile(file) {
+            if (!file.type.startsWith('image/')) { showMessage('Please select an image', 'error'); return; }
+            const reader = new FileReader();
+            reader.onload = e => {
+                const img = new Image();
+                img.onload = () => {
+                    uploadedImage = img;
+                    setupCanvas();
+                    document.getElementById('upload-zone').style.display = 'none';
+                    document.getElementById('canvas-container').classList.add('show');
+                    updateProgress();
+                    showMessage('Image loaded! Click a status and draw a box.', 'info');
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function setupCanvas() {
+            const maxWidth = Math.min(800, window.innerWidth - 60);
+            const scale = Math.min(1, maxWidth / uploadedImage.width);
+            canvas.width = uploadedImage.width * scale;
+            canvas.height = uploadedImage.height * scale;
+            canvas.dataset.scale = scale;
+            redrawCanvas();
+        }
+        
+        function redrawCanvas() {
+            if (!uploadedImage) return;
+            const scale = parseFloat(canvas.dataset.scale);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(uploadedImage, 0, 0, canvas.width, canvas.height);
+            for (const [status, box] of Object.entries(selectionBoxes)) {
+                if (box) drawSelectionBox(box.x * scale, box.y * scale, box.width * scale, box.height * scale, status);
+            }
+        }
+        
+        function selectStatus(status) {
+            document.querySelectorAll('.legend-item').forEach(el => el.classList.remove('active'));
+            document.querySelector(`.legend-item.${status}`).classList.add('active');
+            currentStatus = status;
+            updateProgress();
+        }
+        
+        function startSelection(e) {
+            if (!currentStatus || !uploadedImage) return;
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            startX = e.clientX - rect.left;
+            startY = e.clientY - rect.top;
+        }
+        
+        function updateSelection(e) {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            const currentX = e.clientX - rect.left, currentY = e.clientY - rect.top;
+            redrawCanvas();
+            drawSelectionBox(Math.min(startX, currentX), Math.min(startY, currentY), Math.abs(currentX - startX), Math.abs(currentY - startY), currentStatus);
+        }
+        
+        function endSelection(e) {
+            if (!isDrawing) return;
+            isDrawing = false;
+            const rect = canvas.getBoundingClientRect();
+            const endX = e.clientX - rect.left, endY = e.clientY - rect.top;
+            const scale = parseFloat(canvas.dataset.scale);
+            const x = Math.min(startX, endX) / scale, y = Math.min(startY, endY) / scale;
+            const width = Math.abs(endX - startX) / scale, height = Math.abs(endY - startY) / scale;
+            if (width > 10 && height > 10) { selectionBoxes[currentStatus] = { x, y, width, height }; extractColor(currentStatus); }
+            redrawCanvas();
+            updateProgress();
+        }
+        
+        function handleTouch(e) {
+            e.preventDefault();
+            const touch = e.touches[0] || e.changedTouches[0];
+            canvas.dispatchEvent(new MouseEvent(e.type === 'touchstart' ? 'mousedown' : e.type === 'touchmove' ? 'mousemove' : 'mouseup', { clientX: touch.clientX, clientY: touch.clientY }));
+        }
+        
+        function drawSelectionBox(x, y, width, height, status) {
+            const colors = { fresh: '#22c55e', good: '#84cc16', warning: '#f59e0b', expired: '#ef4444' };
+            ctx.strokeStyle = colors[status];
+            ctx.lineWidth = 3;
+            ctx.strokeRect(x, y, width, height);
+            ctx.fillStyle = colors[status] + '33';
+            ctx.fillRect(x, y, width, height);
+            ctx.fillStyle = colors[status];
+            ctx.font = 'bold 14px Space Grotesk';
+            ctx.fillText(status.toUpperCase(), x + 5, y + 18);
+        }
+        
+        function extractColor(status) {
+            const box = selectionBoxes[status];
+            if (!box) return;
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = uploadedImage.width;
+            tempCanvas.height = uploadedImage.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(uploadedImage, 0, 0);
+            const imageData = tempCtx.getImageData(Math.round(box.x), Math.round(box.y), Math.round(box.width), Math.round(box.height));
+            let r = 0, g = 0, b = 0, count = 0;
+            for (let i = 0; i < imageData.data.length; i += 4) { r += imageData.data[i]; g += imageData.data[i + 1]; b += imageData.data[i + 2]; count++; }
+            const avgR = Math.round(r / count), avgG = Math.round(g / count), avgB = Math.round(b / count);
+            calibrationData[status] = { rgb: [avgR, avgG, avgB], name: status.charAt(0).toUpperCase() + status.slice(1), days: status === 'fresh' ? '30-40' : status === 'good' ? '15-30' : status === 'warning' ? '5-15' : '0' };
+            document.getElementById(`rgb-${status}`).textContent = `RGB(${avgR}, ${avgG}, ${avgB})`;
+            const legendItem = document.querySelector(`.legend-item.${status}`);
+            legendItem.classList.add('completed');
+            legendItem.querySelector('.legend-color').style.background = `rgb(${avgR}, ${avgG}, ${avgB})`;
+        }
+        
+        function updateProgress() {
+            const completed = Object.values(calibrationData).filter(v => v !== null).length;
+            document.getElementById('progress-fill').style.width = `${(completed / 4) * 100}%`;
+            document.getElementById('progress-count').textContent = `${completed}/4 colors selected`;
+            let statusText = uploadedImage ? (currentStatus ? `Drawing for ${currentStatus.toUpperCase()}` : completed < 4 ? 'Click a status and draw' : 'Save your calibration!') : 'Upload sensor image';
+            document.getElementById('progress-status').textContent = statusText;
+            document.getElementById('btn-save').disabled = completed < 4;
+        }
+        
+        async function saveCalibration() {
+            if (Object.values(calibrationData).filter(v => v !== null).length < 4) { showMessage('Select all 4 colors first', 'error'); return; }
+            try {
+                const response = await fetch('/api/calibrate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: 'Web Calibration', created: new Date().toISOString(), sensor_type: 'MilkFresh', colors: calibrationData }) });
+                const data = await response.json();
+                if (data.success) { showMessage('Saved! Redirecting...', 'success'); setTimeout(() => window.location.href = '/', 1500); }
+                else showMessage('Failed: ' + data.error, 'error');
+            } catch (e) { showMessage('Error: ' + e.message, 'error'); }
+        }
+        
+        function resetCalibration() {
+            calibrationData = { fresh: null, good: null, warning: null, expired: null };
+            selectionBoxes = {};
+            currentStatus = null;
+            document.querySelectorAll('.legend-item').forEach(el => { el.classList.remove('active', 'completed'); el.querySelector('.legend-color').style.background = ''; });
+            ['fresh', 'good', 'warning', 'expired'].forEach(s => document.getElementById(`rgb-${s}`).textContent = 'Click to select');
+            if (uploadedImage) redrawCanvas();
+            updateProgress();
+            showMessage('Reset!', 'info');
+        }
+        
+        async function useDefaults() {
+            try {
+                const response = await fetch('/api/calibration/default', { method: 'POST' });
+                const data = await response.json();
+                if (data.success) { showMessage('Defaults applied! Redirecting...', 'success'); setTimeout(() => window.location.href = '/', 1500); }
+                else showMessage('Failed: ' + data.error, 'error');
+            } catch (e) { showMessage('Error: ' + e.message, 'error'); }
+        }
+        
+        function showMessage(text, type) {
+            document.getElementById('message-container').innerHTML = `<div class="message message-${type}"><span>${type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️'}</span><span>${text}</span></div>`;
+            if (type !== 'error') setTimeout(() => document.getElementById('message-container').innerHTML = '', 5000);
+        }
+    </script>
+</body>
+</html>

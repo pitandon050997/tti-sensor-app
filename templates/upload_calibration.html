@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Calibration - TTI Sensor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-card: #1a1a24;
+            --text-primary: #f0f0f5;
+            --text-secondary: #8888a0;
+            --accent: #6366f1;
+            --danger: #ef4444;
+            --border: #2a2a3a;
+        }
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container { max-width: 500px; width: 100%; }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 30px;
+        }
+        h1 { font-size: 1.5rem; margin-bottom: 10px; text-align: center; }
+        p { color: var(--text-secondary); text-align: center; margin-bottom: 25px; }
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        .upload-zone:hover { border-color: var(--accent); background: rgba(99, 102, 241, 0.1); }
+        .upload-zone-icon { font-size: 48px; margin-bottom: 15px; }
+        .btn {
+            width: 100%;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 10px;
+            text-decoration: none;
+            display: block;
+            text-align: center;
+        }
+        .btn-primary { background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%); color: white; }
+        .btn-secondary { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--danger);
+            color: #fca5a5;
+        }
+        input[type="file"] { display: none; }
+        .file-name {
+            background: rgba(99, 102, 241, 0.2);
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-family: monospace;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>📁 Upload Calibration</h1>
+            <p>Upload a calibration.json file from your desktop app</p>
+            {% if error %}<div class="alert">❌ {{ error }}</div>{% endif %}
+            <form method="POST" enctype="multipart/form-data">
+                <div class="upload-zone" onclick="document.getElementById('file-input').click()">
+                    <div class="upload-zone-icon">📄</div>
+                    <p>Click to select calibration.json</p>
+                </div>
+                <div class="file-name" id="file-name"></div>
+                <input type="file" id="file-input" name="file" accept=".json" onchange="showFileName(event)">
+                <button type="submit" class="btn btn-primary" id="submit-btn" disabled>📤 Upload Calibration</button>
+            </form>
+            <a href="/" class="btn btn-secondary">← Back to App</a>
+        </div>
+    </div>
+    <script>
+        function showFileName(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('file-name').textContent = file.name;
+                document.getElementById('file-name').style.display = 'block';
+                document.getElementById('submit-btn').disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

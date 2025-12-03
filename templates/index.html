@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TTI Sensor Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --text-primary: #f0f0f5;
+            --text-secondary: #8888a0;
+            --accent: #6366f1;
+            --accent-hover: #818cf8;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: #2a2a3a;
+        }
+        
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .logo p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .nav-link {
+            padding: 10px 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .nav-link:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+        
+        /* Welcome Section (shown when no calibration) */
+        .welcome-section {
+            text-align: center;
+            padding: 60px 20px;
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            margin-bottom: 30px;
+        }
+        
+        .welcome-section h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+        
+        .welcome-section p {
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto 30px;
+        }
+        
+        .welcome-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        /* Main Grid */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        @media (max-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 25px;
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        /* Upload Zone */
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: var(--bg-secondary);
+        }
+        
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--accent);
+            background: rgba(99, 102, 241, 0.1);
+        }
+        
+        .upload-zone-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .upload-zone p {
+            color: var(--text-secondary);
+            margin-bottom: 15px;
+        }
+        
+        .upload-zone input[type="file"] {
+            display: none;
+        }
+        
+        /* Buttons */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, var(--success) 0%, #16a34a 100%);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning) 0%, #d97706 100%);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
+            color: white;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Image Preview */
+        .image-preview {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .image-preview img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            border: 2px solid var(--border);
+        }
+        
+        .image-preview.hidden {
+            display: none;
+        }
+        
+        /* Results */
+        .results-container {
+            display: none;
+        }
+        
+        .results-container.show {
+            display: block;
+        }
+        
+        .result-status {
+            text-align: center;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .result-status.fresh {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.1) 100%);
+            border: 2px solid var(--success);
+        }
+        
+        .result-status.good {
+            background: linear-gradient(135deg, rgba(132, 204, 22, 0.2) 0%, rgba(132, 204, 22, 0.1) 100%);
+            border: 2px solid #84cc16;
+        }
+        
+        .result-status.warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(245, 158, 11, 0.1) 100%);
+            border: 2px solid var(--warning);
+        }
+        
+        .result-status.expired {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.1) 100%);
+            border: 2px solid var(--danger);
+        }
+        
+        .result-label {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .result-confidence {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+        
+        .result-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .detail-item {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .detail-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+        
+        .detail-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        .color-swatch {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            margin: 0 auto 5px;
+            border: 2px solid var(--border);
+        }
+        
+        /* History */
+        .history-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .history-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        
+        .history-status.fresh { background: var(--success); }
+        .history-status.good { background: #84cc16; }
+        .history-status.warning { background: var(--warning); }
+        .history-status.expired { background: var(--danger); }
+        
+        .history-time {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+        
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Alerts */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alert-error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid var(--danger);
+            color: #fca5a5;
+        }
+        
+        .alert-success {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid var(--success);
+            color: #86efac;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 50px;
+            border-top: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">🔬</div>
+                    <div>
+                        <h1>TTI Sensor Analysis</h1>
+                        <p>Food Freshness Monitoring System</p>
+                    </div>
+                </div>
+                <div class="nav-links">
+                    <a href="/calibrate" class="nav-link">🎯 Calibrate</a>
+                    <a href="/mobile" class="nav-link">📱 Mobile</a>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <main class="container">
+        {% if not has_calibration %}
+        <!-- Welcome Section - Shown when no calibration -->
+        <section class="welcome-section">
+            <h2>👋 Welcome to TTI Sensor Analysis</h2>
+            <p>Before you can analyze sensors, you need to calibrate the system. Choose an option below to get started:</p>
+            <div class="welcome-actions">
+                <a href="/calibrate" class="btn btn-primary">🎯 Web Calibration (Recommended)</a>
+                <a href="/upload-calibration" class="btn btn-secondary">📁 Upload Calibration File</a>
+                <button onclick="useDefaultCalibration()" class="btn btn-warning">⚡ Use Default (Quick Start)</button>
+            </div>
+        </section>
+        {% else %}
+        <!-- Main App - Shown when calibrated -->
+        <div class="main-grid">
+            <!-- Upload Section -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">📤</div>
+                    <h2 class="card-title">Analyze Sensor</h2>
+                </div>
+                
+                <div id="alert-container"></div>
+                
+                <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+                    <div class="upload-zone-icon">📷</div>
+                    <p>Drag & drop sensor image here<br>or click to select</p>
+                    <button class="btn btn-secondary">Choose File</button>
+                    <input type="file" id="file-input" accept="image/*" onchange="handleFileSelect(event)">
+                </div>
+                
+                <div class="image-preview hidden" id="image-preview">
+                    <img id="preview-img" src="" alt="Preview">
+                </div>
+                
+                <div style="margin-top: 20px; text-align: center;">
+                    <button class="btn btn-primary" id="analyze-btn" onclick="analyzeImage()" disabled>
+                        🔍 Analyze Sensor
+                    </button>
+                </div>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Analyzing sensor...</p>
+                </div>
+                
+                <div class="results-container" id="results-container">
+                    <div class="result-status" id="result-status">
+                        <div class="result-label" id="result-label">-</div>
+                        <div class="result-confidence" id="result-confidence">-</div>
+                    </div>
+                    
+                    <div class="result-details" id="result-details">
+                        <div class="detail-item">
+                            <div class="color-swatch" id="sample-color"></div>
+                            <div class="detail-label">Detected Color</div>
+                            <div class="detail-value" id="sample-hex">-</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Days Remaining</div>
+                            <div class="detail-value" id="days-remaining">-</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Confidence</div>
+                            <div class="detail-value" id="confidence-value">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- History Section -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">📊</div>
+                    <h2 class="card-title">Recent Analyses</h2>
+                </div>
+                
+                <div class="history-list" id="history-list">
+                    {% if history %}
+                        {% for item in history|reverse %}
+                        <div class="history-item">
+                            <div>
+                                <span class="history-status {{ item.status }}">{{ item.label }}</span>
+                            </div>
+                            <div>
+                                <span class="history-time">{{ item.days_remaining }} days</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="text-align: center; color: var(--text-secondary); padding: 40px 0;">
+                            No analyses yet. Upload an image to get started!
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </main>
+    
+    <footer>
+        <p>TTI Sensor Analysis System | Piyush Tandon | University of Washington</p>
+        <p style="margin-top: 5px;">Supervisor: Dr. Juming Tang</p>
+    </footer>
+    
+    <script>
+        let selectedFile = null;
+        
+        // Drag and drop handling
+        const uploadZone = document.getElementById('upload-zone');
+        
+        if (uploadZone) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadZone.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadZone.addEventListener(eventName, () => uploadZone.classList.add('dragover'), false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadZone.addEventListener(eventName, () => uploadZone.classList.remove('dragover'), false);
+            });
+            
+            uploadZone.addEventListener('drop', handleDrop, false);
+        }
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        function handleDrop(e) {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        }
+        
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                handleFile(file);
+            }
+        }
+        
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showAlert('Please select an image file', 'error');
+                return;
+            }
+            
+            selectedFile = file;
+            
+            // Show preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById('image-preview');
+                const img = document.getElementById('preview-img');
+                img.src = e.target.result;
+                preview.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+            
+            // Enable analyze button
+            document.getElementById('analyze-btn').disabled = false;
+            
+            // Hide previous results
+            document.getElementById('results-container').classList.remove('show');
+        }
+        
+        async function analyzeImage() {
+            if (!selectedFile) {
+                showAlert('Please select an image first', 'error');
+                return;
+            }
+            
+            const loading = document.getElementById('loading');
+            const results = document.getElementById('results-container');
+            const btn = document.getElementById('analyze-btn');
+            
+            // Show loading
+            loading.classList.add('show');
+            results.classList.remove('show');
+            btn.disabled = true;
+            
+            try {
+                const formData = new FormData();
+                formData.append('image', selectedFile);
+                
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                displayResults(data.result);
+                
+            } catch (error) {
+                showAlert('Analysis failed: ' + error.message, 'error');
+            } finally {
+                loading.classList.remove('show');
+                btn.disabled = false;
+            }
+        }
+        
+        function displayResults(result) {
+            const container = document.getElementById('results-container');
+            const statusDiv = document.getElementById('result-status');
+            const label = document.getElementById('result-label');
+            const confidence = document.getElementById('result-confidence');
+            const sampleColor = document.getElementById('sample-color');
+            const sampleHex = document.getElementById('sample-hex');
+            const daysRemaining = document.getElementById('days-remaining');
+            const confidenceValue = document.getElementById('confidence-value');
+            
+            // Update status
+            statusDiv.className = 'result-status ' + result.analysis.status;
+            label.textContent = result.analysis.label;
+            label.style.color = result.analysis.status_color;
+            confidence.textContent = `${result.analysis.confidence}% confidence`;
+            
+            // Update details
+            sampleColor.style.background = result.sample_color.hex;
+            sampleHex.textContent = result.sample_color.hex;
+            daysRemaining.textContent = result.analysis.days_remaining;
+            confidenceValue.textContent = result.analysis.confidence + '%';
+            
+            // Show results
+            container.classList.add('show');
+            
+            // Scroll to results
+            container.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function showAlert(message, type) {
+            const container = document.getElementById('alert-container');
+            if (!container) return;
+            
+            container.innerHTML = `
+                <div class="alert alert-${type}">
+                    <span>${type === 'error' ? '❌' : '✅'}</span>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                container.innerHTML = '';
+            }, 5000);
+        }
+        
+        async function useDefaultCalibration() {
+            try {
+                const response = await fetch('/api/calibration/default', {
+                    method: 'POST'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('Failed to apply default calibration: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>

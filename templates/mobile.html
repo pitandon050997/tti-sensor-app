@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0a0a0f">
+    <title>TTI Sensor - Mobile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --text-primary: #f0f0f5;
+            --text-secondary: #8888a0;
+            --accent: #6366f1;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: #2a2a3a;
+        }
+        
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            overflow-x: hidden;
+        }
+        
+        .app-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header */
+        .mobile-header {
+            background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .mobile-header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .mobile-header p {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Main Content */
+        .mobile-content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        /* Camera Section */
+        .camera-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid var(--border);
+        }
+        
+        .camera-preview {
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .camera-preview video,
+        .camera-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .camera-preview .placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: var(--text-secondary);
+        }
+        
+        .placeholder-icon {
+            font-size: 64px;
+            margin-bottom: 15px;
+        }
+        
+        /* Camera Controls */
+        .camera-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .cam-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .cam-btn-primary {
+            background: linear-gradient(135deg, var(--accent) 0%, #8b5cf6 100%);
+            color: white;
+            box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+        }
+        
+        .cam-btn-primary:active {
+            transform: scale(0.95);
+        }
+        
+        .cam-btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 2px solid var(--border);
+        }
+        
+        .cam-btn:disabled {
+            opacity: 0.5;
+        }
+        
+        /* Action Buttons */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .action-btn {
+            padding: 16px 20px;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+        
+        .action-btn-analyze {
+            background: linear-gradient(135deg, var(--success) 0%, #16a34a 100%);
+            color: white;
+            grid-column: 1 / -1;
+        }
+        
+        .action-btn-analyze:active {
+            transform: scale(0.98);
+        }
+        
+        .action-btn-analyze:disabled {
+            opacity: 0.5;
+        }
+        
+        /* Results Section */
+        .results-section {
+            display: none;
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid var(--border);
+        }
+        
+        .results-section.show {
+            display: block;
+        }
+        
+        .result-banner {
+            text-align: center;
+            padding: 30px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .result-banner.fresh {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.3) 0%, rgba(34, 197, 94, 0.1) 100%);
+            border: 2px solid var(--success);
+        }
+        
+        .result-banner.good {
+            background: linear-gradient(135deg, rgba(132, 204, 22, 0.3) 0%, rgba(132, 204, 22, 0.1) 100%);
+            border: 2px solid #84cc16;
+        }
+        
+        .result-banner.warning {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.3) 0%, rgba(245, 158, 11, 0.1) 100%);
+            border: 2px solid var(--warning);
+        }
+        
+        .result-banner.expired {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.3) 0%, rgba(239, 68, 68, 0.1) 100%);
+            border: 2px solid var(--danger);
+        }
+        
+        .result-status-text {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .result-days {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .result-confidence {
+            margin-top: 10px;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+        
+        .result-details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        .detail-card {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .detail-card-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+        
+        .detail-card-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .color-preview {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            margin: 0 auto 8px;
+            border: 2px solid var(--border);
+        }
+        
+        /* Loading Overlay */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        
+        .loading-overlay.show {
+            display: flex;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .loading-text {
+            font-size: 1.2rem;
+            color: var(--text-primary);
+        }
+        
+        /* Toast Messages */
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 15px 25px;
+            border-radius: 12px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .toast.show {
+            display: block;
+            animation: slideUp 0.3s ease;
+        }
+        
+        .toast.error {
+            border-color: var(--danger);
+        }
+        
+        .toast.success {
+            border-color: var(--success);
+        }
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+        
+        /* Bottom Nav */
+        .bottom-nav {
+            background: var(--bg-card);
+            border-top: 1px solid var(--border);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-around;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.75rem;
+            transition: color 0.2s;
+        }
+        
+        .nav-item.active {
+            color: var(--accent);
+        }
+        
+        .nav-item-icon {
+            font-size: 24px;
+        }
+        
+        /* Hide file input */
+        #file-input {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="mobile-header">
+            <h1>🔬 TTI Sensor</h1>
+            <p>Food Freshness Analysis</p>
+        </header>
+        
+        <main class="mobile-content">
+            <!-- Camera Section -->
+            <section class="camera-section">
+                <div class="camera-preview" id="camera-preview">
+                    <div class="placeholder" id="camera-placeholder">
+                        <div class="placeholder-icon">📷</div>
+                        <p>Tap camera to capture sensor</p>
+                    </div>
+                    <video id="video" autoplay playsinline style="display: none;"></video>
+                    <img id="captured-image" style="display: none;">
+                </div>
+                
+                <div class="camera-controls">
+                    <button class="cam-btn cam-btn-secondary" id="btn-gallery" onclick="openGallery()">
+                        🖼️
+                    </button>
+                    <button class="cam-btn cam-btn-primary" id="btn-camera" onclick="toggleCamera()">
+                        📷
+                    </button>
+                    <button class="cam-btn cam-btn-secondary" id="btn-switch" onclick="switchCamera()" style="display: none;">
+                        🔄
+                    </button>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="action-btn action-btn-analyze" id="btn-analyze" onclick="analyzeImage()" disabled>
+                        🔍 Analyze Sensor
+                    </button>
+                </div>
+                
+                <input type="file" id="file-input" accept="image/*" onchange="handleFileSelect(event)">
+            </section>
+            
+            <!-- Results Section -->
+            <section class="results-section" id="results-section">
+                <div class="result-banner" id="result-banner">
+                    <div class="result-status-text" id="result-status">-</div>
+                    <div class="result-days" id="result-days">- days remaining</div>
+                    <div class="result-confidence" id="result-confidence">-% confidence</div>
+                </div>
+                
+                <div class="result-details-grid">
+                    <div class="detail-card">
+                        <div class="color-preview" id="detected-color"></div>
+                        <div class="detail-card-label">Detected Color</div>
+                        <div class="detail-card-value" id="color-hex">-</div>
+                    </div>
+                    <div class="detail-card">
+                        <div class="detail-card-label">Analysis Time</div>
+                        <div class="detail-card-value" id="analysis-time">-</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <nav class="bottom-nav">
+            <a href="/" class="nav-item">
+                <span class="nav-item-icon">🏠</span>
+                <span>Home</span>
+            </a>
+            <a href="/mobile" class="nav-item active">
+                <span class="nav-item-icon">📷</span>
+                <span>Camera</span>
+            </a>
+            <a href="/calibrate" class="nav-item">
+                <span class="nav-item-icon">🎯</span>
+                <span>Calibrate</span>
+            </a>
+        </nav>
+    </div>
+    
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Analyzing sensor...</div>
+    </div>
+    
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+    
+    <script>
+        let stream = null;
+        let cameraActive = false;
+        let facingMode = 'environment';
+        let capturedImageData = null;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            checkCalibration();
+        });
+        
+        async function checkCalibration() {
+            try {
+                const response = await fetch('/api/calibration/status');
+                const data = await response.json();
+                
+                if (!data.has_calibration) {
+                    showToast('No calibration found. Using defaults.', 'warning');
+                    // Auto-apply default calibration
+                    await fetch('/api/calibration/default', { method: 'POST' });
+                }
+            } catch (error) {
+                console.error('Calibration check failed:', error);
+            }
+        }
+        
+        async function toggleCamera() {
+            if (cameraActive) {
+                stopCamera();
+            } else {
+                await startCamera();
+            }
+        }
+        
+        async function startCamera() {
+            try {
+                const constraints = {
+                    video: {
+                        facingMode: facingMode,
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                };
+                
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                
+                const video = document.getElementById('video');
+                const placeholder = document.getElementById('camera-placeholder');
+                const capturedImg = document.getElementById('captured-image');
+                const switchBtn = document.getElementById('btn-switch');
+                
+                video.srcObject = stream;
+                video.style.display = 'block';
+                placeholder.style.display = 'none';
+                capturedImg.style.display = 'none';
+                switchBtn.style.display = 'flex';
+                
+                cameraActive = true;
+                document.getElementById('btn-camera').textContent = '📸';
+                
+            } catch (error) {
+                console.error('Camera error:', error);
+                showToast('Cannot access camera. Use gallery instead.', 'error');
+            }
+        }
+        
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            
+            const video = document.getElementById('video');
+            video.style.display = 'none';
+            
+            // Capture frame before stopping
+            if (cameraActive) {
+                captureFrame();
+            }
+            
+            cameraActive = false;
+            document.getElementById('btn-camera').textContent = '📷';
+            document.getElementById('btn-switch').style.display = 'none';
+        }
+        
+        function captureFrame() {
+            const video = document.getElementById('video');
+            const capturedImg = document.getElementById('captured-image');
+            const placeholder = document.getElementById('camera-placeholder');
+            
+            // Create canvas and capture
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0);
+            
+            capturedImageData = canvas.toDataURL('image/jpeg', 0.9);
+            capturedImg.src = capturedImageData;
+            capturedImg.style.display = 'block';
+            placeholder.style.display = 'none';
+            
+            document.getElementById('btn-analyze').disabled = false;
+        }
+        
+        async function switchCamera() {
+            facingMode = facingMode === 'environment' ? 'user' : 'environment';
+            stopCamera();
+            await startCamera();
+        }
+        
+        function openGallery() {
+            document.getElementById('file-input').click();
+        }
+        
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!file.type.startsWith('image/')) {
+                showToast('Please select an image file', 'error');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const capturedImg = document.getElementById('captured-image');
+                const placeholder = document.getElementById('camera-placeholder');
+                const video = document.getElementById('video');
+                
+                capturedImageData = e.target.result;
+                capturedImg.src = capturedImageData;
+                capturedImg.style.display = 'block';
+                placeholder.style.display = 'none';
+                video.style.display = 'none';
+                
+                if (cameraActive) {
+                    stopCamera();
+                }
+                
+                document.getElementById('btn-analyze').disabled = false;
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        async function analyzeImage() {
+            if (!capturedImageData) {
+                showToast('Please capture or select an image first', 'error');
+                return;
+            }
+            
+            const loading = document.getElementById('loading-overlay');
+            const btn = document.getElementById('btn-analyze');
+            
+            loading.classList.add('show');
+            btn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        image: capturedImageData
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                displayResults(data.result);
+                showToast('Analysis complete!', 'success');
+                
+            } catch (error) {
+                showToast('Analysis failed: ' + error.message, 'error');
+            } finally {
+                loading.classList.remove('show');
+                btn.disabled = false;
+            }
+        }
+        
+        function displayResults(result) {
+            const section = document.getElementById('results-section');
+            const banner = document.getElementById('result-banner');
+            const status = document.getElementById('result-status');
+            const days = document.getElementById('result-days');
+            const confidence = document.getElementById('result-confidence');
+            const colorPreview = document.getElementById('detected-color');
+            const colorHex = document.getElementById('color-hex');
+            const analysisTime = document.getElementById('analysis-time');
+            
+            // Update banner
+            banner.className = 'result-banner ' + result.analysis.status;
+            status.textContent = result.analysis.label;
+            status.style.color = result.analysis.status_color;
+            days.textContent = result.analysis.days_remaining + ' days remaining';
+            confidence.textContent = result.analysis.confidence + '% confidence';
+            
+            // Update details
+            colorPreview.style.background = result.sample_color.hex;
+            colorHex.textContent = result.sample_color.hex;
+            
+            const time = new Date(result.timestamp);
+            analysisTime.textContent = time.toLocaleTimeString();
+            
+            // Show section
+            section.classList.add('show');
+            section.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast show ' + type;
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
